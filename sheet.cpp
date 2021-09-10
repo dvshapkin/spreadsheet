@@ -12,24 +12,24 @@ void Sheet::SetCell(Position pos, std::string text) {
     if (!pos.IsValid()) {
         throw InvalidPositionException{"InvalidPosition"};
     }
-    IncreaseSize(pos);
-    auto& cell_interface = cells_[pos.row][pos.col];
+    Increase(pos);
+    auto &cell_interface = cells_[pos.row][pos.col];
     if (cell_interface == nullptr) {
         cell_interface = std::make_unique<Cell>(*this);
     }
-    Cell* cell = dynamic_cast<Cell*>(cell_interface.get());
+    Cell *cell = dynamic_cast<Cell *>(cell_interface.get());
     cell->Set(std::move(text));
 }
 
-const CellInterface* Sheet::GetCell(Position pos) const {
-    return const_cast<Sheet*>(this)->GetCell(pos);
+const CellInterface *Sheet::GetCell(Position pos) const {
+    return const_cast<Sheet *>(this)->GetCell(pos);
 }
 
-CellInterface* Sheet::GetCell(Position pos) {
+CellInterface *Sheet::GetCell(Position pos) {
     if (!pos.IsValid()) {
         throw InvalidPositionException{"InvalidPosition"};
     }
-    if (!IsPrintableSize(pos)) {
+    if (!IsPrintable(pos)) {
         return nullptr;
     }
     return cells_[pos.row][pos.col].get();
@@ -39,33 +39,32 @@ void Sheet::ClearCell(Position pos) {
     if (!pos.IsValid()) {
         throw InvalidPositionException{"InvalidPosition"};
     }
-    if (!IsPrintableSize(pos)) {
+    if (!IsPrintable(pos)) {
         return;
     }
     cells_[pos.row][pos.col].reset();
-    ReduceSize(pos);
+    Decrease(pos);
 }
 
 Size Sheet::GetPrintableSize() const {
     return size_;
 }
 
-void Sheet::PrintValues(std::ostream& output) const {
-    auto lambda = [](const std::unique_ptr<CellInterface>& cell, std::ostream& output) {
-        std::visit([&output](auto&& arg){output << arg;}, cell->GetValue());
+void Sheet::PrintValues(std::ostream &output) const {
+    auto printer = [](const std::unique_ptr<CellInterface> &cell, std::ostream &output) {
+        std::visit([&output](auto &&arg) { output << arg; }, cell->GetValue());
     };
-
-    PrintImpl(lambda, output);
+    PrintTable(printer, output);
 }
-void Sheet::PrintTexts(std::ostream& output) const {
-    auto lambda = [](const std::unique_ptr<CellInterface>& cell, std::ostream& output) {
+
+void Sheet::PrintTexts(std::ostream &output) const {
+    auto printer = [](const std::unique_ptr<CellInterface> &cell, std::ostream &output) {
         output << cell->GetText();
     };
-
-    PrintImpl(lambda, output);
+    PrintTable(printer, output);
 }
 
-bool Sheet::IsPrintableSize(Position pos) const {
+bool Sheet::IsPrintable(Position pos) const {
     if (cells_.size() <= static_cast<size_t>(pos.row)) {
         return false;
     }
@@ -75,7 +74,7 @@ bool Sheet::IsPrintableSize(Position pos) const {
     return true;
 }
 
-void Sheet::IncreaseSize(Position pos) {
+void Sheet::Increase(Position pos) {
     if (size_.rows <= pos.row) {
         size_.rows = pos.row + 1;
         cells_.resize(size_.rows);
@@ -88,7 +87,7 @@ void Sheet::IncreaseSize(Position pos) {
     }
 }
 
-void Sheet::ReduceSize(Position pos) {
+void Sheet::Decrease(Position pos) {
     if (cells_[pos.row].size() == static_cast<size_t>(pos.col) + 1) {
         cells_[pos.row].resize(pos.col);
         size_t new_size = cells_[pos.row].size();
@@ -113,7 +112,7 @@ void Sheet::ReduceSize(Position pos) {
 
     if (size_.cols == pos.col + 1) {
         size_t max_size = 0;
-        for (const auto& row : cells_) {
+        for (const auto &row: cells_) {
             if (max_size < row.size()) {
                 max_size = row.size();
             }

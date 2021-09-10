@@ -89,6 +89,7 @@ namespace {
     private:
         FormulaAST ast_;
     };
+
 }  // namespace
 
 std::unique_ptr<FormulaInterface> ParseFormula(const std::string &expression) {
@@ -97,5 +98,4 @@ std::unique_ptr<FormulaInterface> ParseFormula(const std::string &expression) {
     } catch (FormulaException &fe) {
         throw fe;
     }
-
 }

@@ -41,22 +41,9 @@ private:
 
     void ClearCacheOfDependentCells();
 
-    void ClearDependencies(const std::vector<Position> &refs);
-
-//    std::vector<std::vector<bool>> CreateVisitedCells() const;
-//
-//    void RebuildGraph();
-//
-//    static void AddToStack(std::stack<Position> &destination, const std::vector<Position> &source);
-//
-//    static void AddToStack(std::stack<CellInterface *> &destination, const std::unordered_set<CellInterface *> &source);
-//
-//    static std::stack<Position> CreateStack(const std::vector<Position> &referenced_cells);
-//
-//    static std::stack<CellInterface *> CreateStack(const std::unordered_set<CellInterface *> &deps);
+    void ClearDependencies();
 
     Cell *PosToCell(Position pos) const;
-
 
     Sheet &sheet_;
     std::unique_ptr<Impl> impl_;

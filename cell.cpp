@@ -1,21 +1,14 @@
 #include "cell.h"
 
-
-#include <stack>
 #include <string>
 #include <optional>
-
-// ---------- Cell::Impl ----------
-
-
-
-// ---------- Cell methods ----------
 
 Cell::Cell(Sheet &sheet)
         : sheet_(sheet), impl_(std::make_unique<EmptyImpl>()) {
 }
 
 void Cell::Set(std::string text) {
+
     if (text == impl_->GetText()) {
         return;
     }
@@ -28,20 +21,16 @@ void Cell::Set(std::string text) {
         } catch (std::exception &) {
             throw FormulaException("Formula error");
         }
+
         auto refs = copy_impl->GetReferencedCells();
-        //CheckForCircularDependencies(refs);
         std::unordered_set<const Cell *> checked_refs;
         if (HasCircularDependency(this, refs, checked_refs)) {
             throw CircularDependencyException{"Circular dependency"};
         }
     }
 
-    //std::unique_ptr<Impl> formula_impl = std::move(copy_impl);
-
-    // Удалим старые зависимости (старая формула теперь в impl_copy)
-    ClearDependencies(copy_impl->GetReferencedCells());
-
-
+    // Удалим старые зависимости
+    ClearDependencies();
 
     if (text.empty()) {
         impl_ = std::make_unique<EmptyImpl>();
@@ -62,7 +51,6 @@ void Cell::Set(std::string text) {
     }
 
     ClearCacheOfDependentCells();
-    //RebuildGraph();
 }
 
 Cell::Value Cell::GetValue() const {
@@ -95,42 +83,17 @@ void Cell::ClearCacheOfDependentCells() {
             dep->ClearCache();
         }
     }
+    ClearCache();
 }
 
-//void Cell::ClearCacheOfDependentCells() {
-//    std::stack<CellInterface *> stack_positions = CreateStack(deps_);
-//    std::unordered_set<CellInterface *> visited_cells;
-//
-//    while (!stack_positions.empty()) {
-//        CellInterface *now_cell = stack_positions.top();
-//        stack_positions.pop();
-//        auto is_visited = visited_cells.find(now_cell);
-//        if (is_visited != visited_cells.end()) {
-//            continue;
-//        }
-//        visited_cells.insert(now_cell);
-//        Cell *real_cell = dynamic_cast<Cell *>(now_cell);
-//        AddToStack(stack_positions, real_cell->deps_);
-//        real_cell->ClearCache();
-//    }
-//    ClearCache();
-//}
-
-void Cell::ClearDependencies(const std::vector<Position> &refs) {
-    for (const Position &pos: refs) {
+void Cell::ClearDependencies() {
+    for (const Position &pos: impl_->GetReferencedCells()) {
         auto *p_cell = PosToCell(pos);
         if (p_cell) {
             p_cell->deps_.erase(this);
         }
     }
 }
-
-//std::vector<std::vector<bool>> Cell::CreateVisitedCells() const {
-//    Size printable_size = sheet_.GetPrintableSize();
-//    std::vector<bool> cols(printable_size.cols, false);
-//    std::vector<std::vector<bool>> rows(printable_size.rows, cols);
-//    return rows;
-//}
 
 bool Cell::HasCircularDependency(const Cell *p_begin_cell, const std::vector<Position> &refs,
                                  std::unordered_set<const Cell *> &checked_refs) const {
@@ -148,42 +111,6 @@ bool Cell::HasCircularDependency(const Cell *p_begin_cell, const std::vector<Pos
     return false;
 }
 
-//void Cell::RebuildGraph() {
-//    for (Position pos: impl_->GetReferencedCells()) {
-//        Cell *cell = PosToCell(pos);
-//        if (cell == nullptr) {
-//            auto &dirty_sheet = const_cast<Sheet &>(sheet_);
-//            dirty_sheet.SetCell(pos, {});
-//            cell = PosToCell(pos);
-//        }
-//        cell->deps_.insert(this);
-//    }
-//}
-//
-//void Cell::AddToStack(std::stack<Position> &destination, const std::vector<Position> &source) {
-//    for (Position pos: source) {
-//        destination.push(pos);
-//    }
-//}
-//
-//void Cell::AddToStack(std::stack<CellInterface *> &destination, const std::unordered_set<CellInterface *> &source) {
-//    for (CellInterface *cell: source) {
-//        destination.push(cell);
-//    }
-//}
-//
-//std::stack<Position> Cell::CreateStack(const std::vector<Position> &referenced_cells) {
-//    std::stack<Position> stack_positions;
-//    AddToStack(stack_positions, referenced_cells);
-//    return stack_positions;
-//}
-//
-//std::stack<CellInterface *> Cell::CreateStack(const std::unordered_set<CellInterface *> &deps) {
-//    std::stack<CellInterface *> stack_positions;
-//    AddToStack(stack_positions, deps);
-//    return stack_positions;
-//}
-
 Cell *Cell::PosToCell(Position pos) const {
     const CellInterface *p_cell = sheet_.GetCell(pos);
     if (p_cell) {
@@ -191,9 +118,6 @@ Cell *Cell::PosToCell(Position pos) const {
     }
     return nullptr;
 }
-
-
-// ---------- Cell::impl methods ----------
 
 std::vector<Position> Impl::GetReferencedCells() const {
     return empty_vector_;

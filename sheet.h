@@ -23,31 +23,30 @@ public:
     void PrintTexts(std::ostream &output) const override;
 
 private:
-    [[nodiscard]] bool IsPrintableSize(Position pos) const;
+    [[nodiscard]] bool IsPrintable(Position pos) const;
 
-    void IncreaseSize(Position pos);
+    void Increase(Position pos);
 
-    void ReduceSize(Position pos);
+    void Decrease(Position pos);
 
-    template<typename PrintContext>
-    void PrintImpl(PrintContext print_context, std::ostream &output) const;
+    template<typename Printer>
+    void PrintTable(Printer printer, std::ostream &output) const;
 
     std::vector<std::vector<std::unique_ptr<CellInterface>>> cells_;
     Size size_;
 };
 
-template<typename PrintContext>
-void Sheet::PrintImpl(PrintContext print_context, std::ostream &output) const {
+template<typename Printer>
+void Sheet::PrintTable(Printer printer, std::ostream &output) const {
     for (const auto &rows: cells_) {
         size_t col = 0;
         for (size_t min_bound = std::min(rows.size(), static_cast<size_t>(size_.cols)); col < min_bound; ++col) {
             if (rows[col]) {
-                print_context(rows[col], output);
+                printer(rows[col], output);
             }
             if (col < static_cast<size_t>(size_.cols) - 1) {
                 output << '\t';
             }
-
         }
         for (; col < static_cast<size_t>(size_.cols) - 1; ++col) {
             output << '\t';

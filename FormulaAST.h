@@ -17,7 +17,7 @@ class ParsingError : public std::runtime_error {
 
 class FormulaAST {
 public:
-    using CallbackFunction = std::function<double(Position)>;
+    using Accessor = std::function<double(Position)>;
 
     explicit FormulaAST(std::unique_ptr<ASTImpl::Expr> root_expr,
                         std::forward_list<Position> cells);
@@ -25,7 +25,7 @@ public:
     FormulaAST& operator=(FormulaAST&&) = default;
     ~FormulaAST();
     
-    [[nodiscard]] double Execute(CallbackFunction callback) const;
+    [[nodiscard]] double Execute(Accessor callback) const;
     void PrintCells(std::ostream& out) const;
     void Print(std::ostream& out) const;
     void PrintFormula(std::ostream& out) const;
