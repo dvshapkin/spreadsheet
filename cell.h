@@ -34,34 +34,33 @@ public:
     bool IsReferenced() const;
 
 private:
-    //void CheckForCircularDependencies(const std::vector<Position> &referenced_cells) const;
-    bool HasCircularDependency(const Cell *p_begin_cell,
+    bool HasCircularDependency(const Cell *p_begin_cell, const std::vector<Position> &refs,
                                std::unordered_set<const Cell *> &checked_refs) const;
 
     void ClearCache();
 
     void ClearCacheOfDependentCells();
 
-    void ClearDependencies();
+    void ClearDependencies(const std::vector<Position> &refs);
 
-    std::vector<std::vector<bool>> CreateVisitedCells() const;
-
-    void RebuildGraph();
-
-    static void AddToStack(std::stack<Position> &destination, const std::vector<Position> &source);
-
-    static void AddToStack(std::stack<CellInterface *> &destination, const std::unordered_set<CellInterface *> &source);
-
-    static std::stack<Position> CreateStack(const std::vector<Position> &referenced_cells);
-
-    static std::stack<CellInterface *> CreateStack(const std::unordered_set<CellInterface *> &deps);
+//    std::vector<std::vector<bool>> CreateVisitedCells() const;
+//
+//    void RebuildGraph();
+//
+//    static void AddToStack(std::stack<Position> &destination, const std::vector<Position> &source);
+//
+//    static void AddToStack(std::stack<CellInterface *> &destination, const std::unordered_set<CellInterface *> &source);
+//
+//    static std::stack<Position> CreateStack(const std::vector<Position> &referenced_cells);
+//
+//    static std::stack<CellInterface *> CreateStack(const std::unordered_set<CellInterface *> &deps);
 
     Cell *PosToCell(Position pos) const;
 
 
     Sheet &sheet_;
     std::unique_ptr<Impl> impl_;
-    std::unordered_set<CellInterface *> deps_;
+    std::unordered_set<Cell *> deps_;
     mutable std::optional<Value> cache_;
 };
 
