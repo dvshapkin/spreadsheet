@@ -30,7 +30,7 @@ void Cell::Set(std::string text) {
     }
 
     // Удалим старые зависимости
-    ClearDependencies();
+    RemoveOldDeps();
 
     if (text.empty()) {
         impl_ = std::make_unique<EmptyImpl>();
@@ -41,14 +41,7 @@ void Cell::Set(std::string text) {
     }
 
     // Добавим новые зависимости
-    for (Position ref: impl_->GetReferencedCells()) {
-        auto p_cell = PosToCell(ref);
-        if (!p_cell) {
-            sheet_.SetCell(ref, "");
-            p_cell = PosToCell(ref);
-        }
-        p_cell->deps_.insert(this);
-    }
+    AddNewDeps();
 
     ClearCacheOfDependentCells();
 }
@@ -86,12 +79,23 @@ void Cell::ClearCacheOfDependentCells() {
     ClearCache();
 }
 
-void Cell::ClearDependencies() {
+void Cell::RemoveOldDeps() {
     for (const Position &pos: impl_->GetReferencedCells()) {
         auto *p_cell = PosToCell(pos);
         if (p_cell) {
             p_cell->deps_.erase(this);
         }
+    }
+}
+
+void Cell::AddNewDeps() {
+    for (Position ref: impl_->GetReferencedCells()) {
+        auto p_cell = PosToCell(ref);
+        if (!p_cell) {
+            sheet_.SetCell(ref, "");
+            p_cell = PosToCell(ref);
+        }
+        p_cell->deps_.insert(this);
     }
 }
 

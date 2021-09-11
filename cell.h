@@ -41,7 +41,9 @@ private:
 
     void ClearCacheOfDependentCells();
 
-    void ClearDependencies();
+    void RemoveOldDeps();
+
+    void AddNewDeps();
 
     Cell *PosToCell(Position pos) const;
 
