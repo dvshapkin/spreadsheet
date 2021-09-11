@@ -65,10 +65,10 @@ void Sheet::PrintTexts(std::ostream &output) const {
 }
 
 bool Sheet::IsPrintable(Position pos) const {
-    if (cells_.size() <= static_cast<size_t>(pos.row)) {
+    if (SizeOf(cells_) <= pos.row) {
         return false;
     }
-    if (cells_[pos.row].size() <= static_cast<size_t>(pos.col)) {
+    if (SizeOf(cells_[pos.row]) <= pos.col) {
         return false;
     }
     return true;
@@ -79,7 +79,7 @@ void Sheet::Increase(Position pos) {
         size_.rows = pos.row + 1;
         cells_.resize(size_.rows);
     }
-    if (cells_[pos.row].size() <= static_cast<size_t>(pos.col)) {
+    if (SizeOf(cells_[pos.row]) <= pos.col) {
         cells_[pos.row].resize(pos.col + 1);
     }
     if (size_.cols <= pos.col) {
@@ -88,36 +88,36 @@ void Sheet::Increase(Position pos) {
 }
 
 void Sheet::Decrease(Position pos) {
-    if (cells_[pos.row].size() == static_cast<size_t>(pos.col) + 1) {
-        cells_[pos.row].resize(pos.col);
-        size_t new_size = cells_[pos.row].size();
+
+    // Удалим лишние пустые ячейки в строке
+    int curr_size = SizeOf(cells_[pos.row]);
+    if (curr_size == pos.col + 1) {
+        int new_size = curr_size;
         while (new_size != 0 && cells_[pos.row][new_size - 1] == nullptr) {
             --new_size;
         }
-        if (new_size == 0 && cells_[pos.row][new_size] == nullptr) {
-            cells_[pos.row].resize(new_size);
-        }
+        cells_[pos.row].resize(new_size);
     }
 
+    // Удалим лишние пустые строки
     if (cells_[pos.row].empty() && size_.rows == pos.row + 1) {
-        --size_.rows;
-        size_t new_size = size_.rows;
+        int new_size = size_.rows;
         while (new_size != 0 && cells_[new_size - 1].empty()) {
             --new_size;
         }
-        size_.rows = static_cast<int>(new_size);
+        size_.rows = new_size;  // обновим количество строк в печатной области
         cells_.resize(size_.rows);
-
     }
 
+    // Обновим количество колонок в печатной области
     if (size_.cols == pos.col + 1) {
-        size_t max_size = 0;
+        int max_size = 0;
         for (const auto &row: cells_) {
-            if (max_size < row.size()) {
-                max_size = row.size();
+            if (max_size < SizeOf(row)) {
+                max_size = SizeOf(row);
             }
         }
-        size_.cols = static_cast<int>(max_size);
+        size_.cols = max_size;
     }
 }
 

@@ -36,19 +36,25 @@ private:
     Size size_;
 };
 
+template<typename Container>
+int SizeOf(const Container &c) {
+    return static_cast<int>(c.size());
+}
+
 template<typename Printer>
 void Sheet::PrintTable(Printer printer, std::ostream &output) const {
     for (const auto &rows: cells_) {
-        size_t col = 0;
-        for (size_t min_bound = std::min(rows.size(), static_cast<size_t>(size_.cols)); col < min_bound; ++col) {
+        int col = 0;
+        int min_cols = std::min(SizeOf(rows), size_.cols);
+        for (; col < min_cols; ++col) {
             if (rows[col]) {
                 printer(rows[col], output);
             }
-            if (col < static_cast<size_t>(size_.cols) - 1) {
+            if (col < size_.cols - 1) {
                 output << '\t';
             }
         }
-        for (; col < static_cast<size_t>(size_.cols) - 1; ++col) {
+        for (; col < size_.cols - 1; ++col) {
             output << '\t';
         }
         output << '\n';
